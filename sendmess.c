@@ -13,6 +13,19 @@
 #define USERNAME    "admin"
 #define PASSWORD    "admin"
 
+struct info {
+   float temp;
+   float pres;
+   float humi;
+};
+
+void getinfo(struct info *info)
+{
+    info->temp = 14.78;
+    info->pres = 963.41;
+    info->humi = 53.20;
+}
+
 volatile MQTTAsync_token deliveredtoken;
 int finished = 0;
 void connlost(void *context, char *cause)
@@ -61,11 +74,22 @@ void onConnect(void* context, MQTTAsync_successData* response)
         MQTTAsync_responseOptions opts = MQTTAsync_responseOptions_initializer;
         MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
         int rc;
+        char mess[100];
+        struct info info;
         printf("Successful connection\n");
         opts.onSuccess = onSend;
         opts.context = client;
-        pubmsg.payload = PAYLOAD;
-        pubmsg.payloadlen = strlen(PAYLOAD);
+        /* table created as:
+         *   CREATE TABLE measurements (
+         *  time bigint,
+         *  temp NUMERIC(4,2),
+         *  pres NUMERIC(6,2),
+         *  humi NUMERIC(5,2));
+         */
+        getinfo(&info);
+        sprintf(mess, "%d %4.2f %6.2f %4.2f", 0, info.temp, info.pres, info.humi);
+        pubmsg.payload = mess;
+        pubmsg.payloadlen = strlen(mess);
         pubmsg.qos = QOS;
         pubmsg.retained = 0;
         deliveredtoken = 0;

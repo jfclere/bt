@@ -52,9 +52,17 @@ void connlost(void *context, char *cause)
 
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *message)
 {
+    int time;
+    float temp;
+    float pres;
+    float humi;
+
     printf("Message arrived\n");
     printf("     topic: %s\n", topicName);
     printf("   message: %.*s\n", message->payloadlen, (char*)message->payload);
+    // sscanf(message->payload, "%d %4.2f %6.2f %4.2f", &time, &temp, &pres, &humi);
+    sscanf(message->payload, "%d %f %f %f", &time, &temp, &pres, &humi);
+    printf("%d %4.2f %6.2f %4.2f\n", time, temp, pres, humi);
     MQTTAsync_freeMessage(&message);
     MQTTAsync_free(topicName);
     return 1;
