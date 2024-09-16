@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <time.h>
 #include "MQTTAsync.h"
 #define ADDRESS     "tcp://localhost:1883"
 #define CLIENTID    "ExampleClientPub"
@@ -18,12 +20,21 @@ struct info {
    float pres;
    float humi;
 };
+char *filename;
 
-void getinfo(struct info *info)
+void getinfo(struct info *info, char *filename)
 {
-    info->temp = 14.78;
-    info->pres = 963.41;
-    info->humi = 53.20;
+    char mess[100];
+    int time;
+    float temp, pres, humi;
+    int fd = open(filename, O_RDONLY, 0);
+    read(fd, mess, sizeof(mess));
+    close(fd);
+    printf("getinfo: %s from %s\n", mess, filename);
+    sscanf(mess, "%d %f %f %f", &time, &temp, &pres, &humi); 
+    info->temp = temp;
+    info->pres = pres;
+    info->humi = humi;
 }
 
 volatile MQTTAsync_token deliveredtoken;
@@ -86,8 +97,9 @@ void onConnect(void* context, MQTTAsync_successData* response)
          *  pres NUMERIC(6,2),
          *  humi NUMERIC(5,2));
          */
-        getinfo(&info);
-        sprintf(mess, "%d %4.2f %6.2f %4.2f", 0, info.temp, info.pres, info.humi);
+        getinfo(&info, filename);
+        time_t t = time(NULL);
+        sprintf(mess, "%d %4.2f %6.2f %4.2f", t, info.temp, info.pres, info.humi);
         pubmsg.payload = mess;
         pubmsg.payloadlen = strlen(mess);
         pubmsg.qos = QOS;
@@ -106,6 +118,19 @@ int main(int argc, char* argv[])
         MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
         MQTTAsync_token token;
         int rc;
+
+        if (argc != 2) {
+            printf("Need file name\n");
+            exit(1);
+        }
+        filename = argv[1];
+        int fd = open(filename, O_RDONLY, 0);
+        if (fd < 0) {
+            printf("Can't openssl %s\n", filename);
+            exit(1);
+        }
+        close(fd);
+
         MQTTAsync_create(&client, ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
         MQTTAsync_setCallbacks(client, NULL, connlost, NULL, NULL);
         conn_opts.keepAliveInterval = 20;
