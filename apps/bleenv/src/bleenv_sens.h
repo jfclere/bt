@@ -35,6 +35,11 @@ struct ble_env_measurement_state {
     double humidity;
 };
 
+/* getters for the values */
+float get_temp();
+float get_press();
+float get_humid();
+
 extern uint16_t csc_measurement_handle; /* XXX */
 extern uint16_t csc_control_point_handle; /* XXX */
 

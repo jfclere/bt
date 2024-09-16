@@ -121,8 +121,12 @@ static int
 gatt_svr_chr_access_temperature(uint16_t conn_handle, uint16_t attr_handle,
                                   struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    static const int16_t csc_feature = TEMP_VAL;
+    int16_t csc_feature;
     int rc;
+    float temp;
+    temp = get_temp();
+    temp = temp * 100;
+    csc_feature = (int16_t) temp;
 
     assert(ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR);
     rc = os_mbuf_append(ctxt->om, &csc_feature, sizeof(csc_feature));
@@ -134,8 +138,12 @@ static int
 gatt_svr_chr_access_pressure(uint16_t conn_handle, uint16_t attr_handle,
                                 struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    static const uint32_t csc_feature = PRESS_VAL;
+    uint32_t csc_feature;
     int rc;
+    float press;
+    press = get_press();
+    press = press * 10;
+    csc_feature = (uint32_t) press;
 
     assert(ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR);
     rc = os_mbuf_append(ctxt->om, &csc_feature, sizeof(csc_feature));
@@ -147,9 +155,13 @@ static int
 gatt_svr_chr_access_humidy(uint16_t conn_handle, uint16_t attr_handle,
                                   struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
+    uint16_t csc_feature;
     int rc;
 
-    static const uint16_t csc_feature = HUM_VAL;
+    float humid;
+    humid = get_humid();
+    humid = humid * 100;
+    csc_feature = (uint16_t) humid;
     assert(ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR);
     rc = os_mbuf_append(ctxt->om, &csc_feature, sizeof(csc_feature));
 
