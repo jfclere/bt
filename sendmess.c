@@ -5,8 +5,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdbool.h>
 #include "MQTTAsync.h"
-#define ADDRESS     "tcp://localhost:1883"
+/* ADDRESS should a parameter */
+/* #define ADDRESS     "tcp://localhost:1883" */
+#define ADDRESS     "mqtts://jfclere.myddns.me:8001"
 #define CLIENTID    "ExampleClientPub"
 #define TOPIC       "topic/test"
 #define PAYLOAD     "Hello World!"
@@ -117,6 +120,7 @@ int main(int argc, char* argv[])
         MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
         MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
         MQTTAsync_token token;
+        MQTTAsync_SSLOptions ssl_opts = MQTTAsync_SSLOptions_initializer;
         int rc;
 
         if (argc != 2) {
@@ -131,7 +135,11 @@ int main(int argc, char* argv[])
         }
         close(fd);
 
-        MQTTAsync_create(&client, ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
+        rc = MQTTAsync_create(&client, ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
+        if (rc != MQTTASYNC_SUCCESS) {
+            printf("Failed to create client object, return code %d\n", rc);
+            exit(1);
+        }
         MQTTAsync_setCallbacks(client, NULL, connlost, NULL, NULL);
         conn_opts.keepAliveInterval = 20;
         conn_opts.cleansession = 1;
@@ -140,6 +148,17 @@ int main(int argc, char* argv[])
         conn_opts.context = client;
         conn_opts.username = USERNAME;
         conn_opts.password = PASSWORD;
+        ssl_opts.enableServerCertAuth = false;
+        ssl_opts.verify = false;
+/* XXX something more ...
+    ssl_opts.struct_version = 3;
+    ssl_opts.trustStore = server_certificate.c_str();
+    ssl_opts.keyStore = client_certificate.c_str();
+    ssl_opts.privateKey = private_key.c_str();
+    ssl_opts.privateKeyPassword = private_key_password.c_str();
+ */
+
+        conn_opts.ssl = &ssl_opts;
         if ((rc = MQTTAsync_connect(client, &conn_opts)) != MQTTASYNC_SUCCESS)
         {
                 printf("Failed to start connect, return code %d\n", rc);
