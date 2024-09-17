@@ -22,6 +22,8 @@ int disc_finished = 0;
 int subscribed = 0;
 int finished = 0;
 
+void inserttemp(char *table, time_t t, float temp, float pres, float humi);
+
 void onConnect(void* context, MQTTAsync_successData* response);
 void onConnectFailure(void* context, MQTTAsync_failureData* response);
 
@@ -52,7 +54,7 @@ void connlost(void *context, char *cause)
 
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *message)
 {
-    int time;
+    time_t time;
     float temp;
     float pres;
     float humi;
@@ -63,6 +65,7 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
     // sscanf(message->payload, "%d %4.2f %6.2f %4.2f", &time, &temp, &pres, &humi);
     sscanf(message->payload, "%d %f %f %f", &time, &temp, &pres, &humi);
     printf("%d %4.2f %6.2f %4.2f\n", time, temp, pres, humi);
+    inserttemp("measurements", time, temp, pres, humi);
     MQTTAsync_freeMessage(&message);
     MQTTAsync_free(topicName);
     return 1;
