@@ -44,6 +44,9 @@ syscfg.vals:
     # Whether to save data to sys/config, or just keep it in RAM.
     BLE_STORE_CONFIG_PERSIST: 0
 
+    # JFC try
+    FLASH_AREA_BOOTLOADER: FLASH_AREA_NRF52_BOOTLOADER
+
 # Settings this app overrides.
 syscfg.defs:
     APP_USE_BME280_NODE:

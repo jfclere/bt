@@ -24,7 +24,6 @@
 
 #include "os/mynewt.h"
 #include "console/console.h"
-#include "config/config.h"
 #include "nimble/ble.h"
 #include "host/ble_hs.h"
 #include "services/gap/ble_svc_gap.h"
