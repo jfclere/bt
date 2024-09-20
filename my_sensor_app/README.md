@@ -13,7 +13,7 @@ targets/thingy_my_sensor
     build_profile=debug
     syscfg=BME280=1:BUS_DRIVER_PRESENT=1:CONSOLE_RTT=0:CONSOLE_UART=1:FLOAT_USER=1:I2C_0=1:I2C_0_FREQ_KHZ=10:I2C_0_PIN_SCL=27:I2C_0_PIN_SDA=26:SENSOR_OIC=0:SHELL_TASK=0
 ```
-## To test use something like FT232H on P0.08/P0.06 (D0/D1) and minicom
+## To test use something like FT232H on P0.08/P0.06 (D0/D1) (TX/RX) and minicom
 Once the nRF52840DK is resetted with the thingy_my_sensor app you should get:
 ```
 000000 my_sensor_app starting!!!                                                                                                                   
