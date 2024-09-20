@@ -123,7 +123,7 @@ static struct bme280 bme280;
 static struct sensor *bme280_sensor;
 static struct sensor_itf g_bme280_sensor_itf;
 
-static void
+static int
 bme280_sensor_configure(void)
 {
     struct os_dev *dev;
@@ -131,6 +131,8 @@ bme280_sensor_configure(void)
     int rc;
 
     dev = os_dev_open("bme280", OS_TIMEOUT_NEVER, NULL);
+    if (dev == NULL)
+        return -1;
     assert(dev != NULL);
 
     memset(&cfg, 0, sizeof(cfg));
@@ -149,9 +151,11 @@ bme280_sensor_configure(void)
                        SENSOR_TYPE_RELATIVE_HUMIDITY;
 
     rc = bme280_config((struct bme280 *)dev, &cfg);
-    assert(rc == 0);
+    if (rc)
+        return rc;
 
     os_dev_close(dev);
+    return 0;
 }
 
 /* Noticication status */
@@ -334,6 +338,60 @@ blecsc_on_sync(void)
 }
 
 /*
+ * Do the bme280 logic
+ *
+ * @return 0 on success, non-zero on failure
+ */
+static int my_sensor()
+{
+    struct os_dev *dev;
+    int rc;
+
+   /* sensor part */
+    rc = bme280_create_i2c_sensor_dev(&bme280.i2c_node, MY_SENSOR_DEVICE,
+                                      &g_bme280_i2c_node_cfg,
+                                      &g_bme280_sensor_itf);
+    console_printf("my_sensor_app rc = %d\n", rc);
+    if (rc)
+        return rc;
+    dev = os_dev_open(MY_SENSOR_DEVICE, 0, NULL);
+    if (dev == NULL) {
+        console_printf("my_sensor_app dev == NULL\n");
+        return -1;
+    } else
+        console_printf("my_sensor_app dev YES!!!\n");
+
+    bme280_sensor_configure();
+    console_printf("my_sensor_app bme280_sensor_configure DONE\n");
+
+    bme280_sensor = sensor_mgr_find_next_bydevname(MY_SENSOR_DEVICE, NULL);
+
+    if (bme280_sensor == NULL) {
+        console_printf("my_sensor_app sensor_mgr_find_next_bydevname NULL\n");
+        return -2;
+    }
+
+    rc = sensor_register_listener(bme280_sensor, &listener_temp);
+    console_printf("sensor_register_listener %d\n", rc);
+    if (rc)
+        return rc;
+
+    rc = sensor_register_listener(bme280_sensor, &listener_press);
+    console_printf("sensor_register_listener %d\n", rc);
+    if (rc)
+        return rc;
+
+    rc = sensor_register_listener(bme280_sensor, &listener_hum);
+    console_printf("sensor_register_listener %d\n", rc);
+    if (rc)
+        return rc;
+
+    rc = sensor_set_poll_rate_ms(MY_SENSOR_DEVICE, MY_SENSOR_POLL_TIME);
+    console_printf("my_sensor_app %d\n", rc);
+    return rc;
+}
+
+/*
  * main
  *
  * The main task for the project. This function initializes the packages,
@@ -352,43 +410,10 @@ mynewt_main(int argc, char **argv)
     console_printf("bleenv starting!!!\n");
 
     /* sensor part */
-    rc = bme280_create_i2c_sensor_dev(&bme280.i2c_node, MY_SENSOR_DEVICE,
-                                      &g_bme280_i2c_node_cfg,
-                                      &g_bme280_sensor_itf);
-    console_printf("my_sensor_app rc = %d\n", rc);
-    assert(rc == 0);
-    struct os_dev *dev;
-    dev = os_dev_open(MY_SENSOR_DEVICE, 0, NULL);
-    if (dev == NULL)
-        console_printf("my_sensor_app dev == NULL\n");
-    else
-        console_printf("my_sensor_app dev YES!!!\n");
-    assert(dev);
-
-    bme280_sensor_configure();
-    console_printf("my_sensor_app bme280_sensor_configure DONE\n");
-
-    bme280_sensor = sensor_mgr_find_next_bydevname(MY_SENSOR_DEVICE, NULL);
-
-    if (bme280_sensor == NULL)
-        console_printf("my_sensor_app sensor_mgr_find_next_bydevname NULL\n");
-    assert(bme280_sensor);
-
-    rc = sensor_register_listener(bme280_sensor, &listener_temp);
-    console_printf("sensor_register_listener %d\n", rc);
-    assert(rc == 0);
-    
-    rc = sensor_register_listener(bme280_sensor, &listener_press);
-    console_printf("sensor_register_listener %d\n", rc);
-    assert(rc == 0);
-    
-    rc = sensor_register_listener(bme280_sensor, &listener_hum);
-    console_printf("sensor_register_listener %d\n", rc);
-    assert(rc == 0);
-    
-    rc = sensor_set_poll_rate_ms(MY_SENSOR_DEVICE, MY_SENSOR_POLL_TIME);
-    console_printf("my_sensor_app %d\n", rc);
-    assert(rc == 0);
+    rc = my_sensor();
+    if (rc) {
+        console_printf("sensor part failed!!!\n");
+    }
 
     /* Initialize the NimBLE host configuration */
     ble_hs_cfg.sync_cb = blecsc_on_sync;
