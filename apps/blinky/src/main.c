@@ -30,6 +30,36 @@ static volatile int g_task1_loops;
 /* For LED toggling */
 int g_led_pin;
 
+/* The timer callout */
+static struct os_callout blinky_callout;
+
+/*
+ * Event callback function for timer events. It toggles the led pin.
+ */
+static void
+timer_ev_cb(struct os_event *ev)
+{
+    assert(ev != NULL);
+
+    ++g_task1_loops;
+    hal_gpio_toggle(g_led_pin);
+    console_printf("*");
+
+    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
+}
+
+static void
+init_timer(void)
+{
+    /*
+     * Initialize the callout for a timer event.
+     */
+    os_callout_init(&blinky_callout, os_eventq_dflt_get(),
+                    timer_ev_cb, NULL);
+
+    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
+}
+
 /**
  * main
  *
@@ -44,18 +74,14 @@ mynewt_main(int argc, char **argv)
     int rc;
 
     sysinit();
+    console_printf("mynewt_main\n");
 
     g_led_pin = LED_BLINK_PIN;
     hal_gpio_init_out(g_led_pin, 1);
+    init_timer();
 
     while (1) {
-        ++g_task1_loops;
-
-        /* Wait one second */
-        os_time_delay(OS_TICKS_PER_SEC);
-
-        /* Toggle the LED */
-        hal_gpio_toggle(g_led_pin);
+        os_eventq_run(os_eventq_dflt_get());
     }
     assert(0);
 
