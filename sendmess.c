@@ -11,6 +11,7 @@
 /* #define ADDRESS     "tcp://localhost:1883" */
 #define ADDRESS     "mqtts://jfclere.myddns.me:8001"
 #define CLIENTID    "ExampleClientPub"
+/* we use topic/# in receiver so /topic/dongle(n) here */
 #define TOPIC       "topic/test"
 #define PAYLOAD     "Hello World!"
 #define QOS         1
@@ -108,7 +109,18 @@ void onConnect(void* context, MQTTAsync_successData* response)
         pubmsg.qos = QOS;
         pubmsg.retained = 0;
         deliveredtoken = 0;
-        if ((rc = MQTTAsync_sendMessage(client, TOPIC, &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
+
+        /* build the topic */
+        char *devicenametxt = strrchr(filename, '/');
+        devicenametxt++;
+        char *devicename = strdup(devicenametxt);
+        char *dot = strchr(devicename, '.');
+        *dot = '\0';
+        char topic[100];
+        sprintf(topic,"topic/%s", devicename);
+        printf("Sending %s on %s\n", mess, topic);
+
+        if ((rc = MQTTAsync_sendMessage(client, topic, &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
         {
                 printf("Failed to start sendMessage, return code %d\n", rc);
                 exit(EXIT_FAILURE);

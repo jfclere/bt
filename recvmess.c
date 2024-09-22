@@ -11,7 +11,8 @@
 
 #define ADDRESS     "tcp://localhost:1883"
 #define CLIENTID    "ExampleClientSub"
-#define TOPIC       "topic/test"
+/* "topic/#" so we receive topic/dongle1, dongle2 etc */
+#define TOPIC       "topic/#"
 #define PAYLOAD     "Hello World!"
 #define QOS         1
 #define TIMEOUT     10000L
@@ -62,10 +63,13 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
     printf("Message arrived\n");
     printf("     topic: %s\n", topicName);
     printf("   message: %.*s\n", message->payloadlen, (char*)message->payload);
+    /* topic/dongle(n), use dongle(n) as table */
+    char *devicename = strrchr(topicName, '/');
+    devicename++;
     // sscanf(message->payload, "%d %4.2f %6.2f %4.2f", &time, &temp, &pres, &humi);
     sscanf(message->payload, "%d %f %f %f", &time, &temp, &pres, &humi);
     printf("%d %4.2f %6.2f %4.2f\n", time, temp, pres, humi);
-    inserttemp("measurements", time, temp, pres, humi);
+    inserttemp(devicename, time, temp, pres, humi);
     MQTTAsync_freeMessage(&message);
     MQTTAsync_free(topicName);
     return 1;
