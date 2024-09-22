@@ -69,3 +69,8 @@ syscfg.defs:
     BME280_NODE_I2C_FREQUENCY:
         description: I2C frequency [kHz] to use for BME280
         value: 100
+    BLE_SENSOR_NAME:
+        description: sensor name for the bluetoothctl tooling
+        value:
+        restrictions:
+            - $notnull

@@ -31,6 +31,8 @@
 
 #include "sysinit/sysinit.h"
 #include "os/os.h"
+#include "bsp/bsp.h"
+#include "hal/hal_gpio.h"
 
 #include <defs/error.h>
 #include <sensor/sensor.h>
@@ -167,7 +169,12 @@ static uint16_t conn_handle;
 static uint8_t blecsc_addr_type;
 
 /* Advertised device name  */
-static const char *device_name = "blecenv_sensor";
+
+#ifdef MYNEWT_VAL_BLE_SENSOR_NAME
+static const char *device_name = MYNEWT_VAL(BLE_SENSOR_NAME);
+#else
+static const char *device_name = "changeit";
+#endif
 
 /* Measurement and notification timer */
 static struct os_callout bleenv_measure_timer;
@@ -337,6 +344,39 @@ blecsc_on_sync(void)
     blecsc_advertise();
 }
 
+/* Do the LED logic */
+static volatile int g_task1_loops;
+int g_led_pin;
+
+/* The timer callout */
+static struct os_callout blinky_callout;
+
+/*
+ * Event callback function for timer events. It toggles the led pin.
+ */
+static void
+timer_ev_cb(struct os_event *ev)
+{
+    assert(ev != NULL);
+
+    ++g_task1_loops;
+    hal_gpio_toggle(g_led_pin);
+
+    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
+}
+
+static void
+init_timer(void)
+{
+    /*
+     * Initialize the callout for a timer event.
+     */
+    os_callout_init(&blinky_callout, os_eventq_dflt_get(),
+                    timer_ev_cb, NULL);
+
+    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
+}
+
 /*
  * Do the bme280 logic
  *
@@ -406,6 +446,10 @@ mynewt_main(int argc, char **argv)
 
     /* Initialize OS */
     sysinit();
+
+    g_led_pin = LED_BLINK_PIN;
+    hal_gpio_init_out(g_led_pin, 1);
+    init_timer();
 
     console_printf("bleenv starting!!!\n");
 
