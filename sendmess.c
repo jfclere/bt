@@ -28,7 +28,7 @@ char *filename;
 
 void getinfo(struct info *info, char *filename)
 {
-    char mess[100];
+    char mess[100] = { 0 };
     int time;
     float temp, pres, humi;
     int fd = open(filename, O_RDONLY, 0);

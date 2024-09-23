@@ -2,6 +2,12 @@
 
 # Read value from BLE and send them to artemis
 
+grep Raspbian /etc/os-release >/dev/null
+if [ $? -eq 0 ]; then
+  # build and install it in /usr/local/lib
+  export LD_LIBRARY_PATH=/usr/local/lib
+fi
+
 # the BLE read might fail as the sendmess
 failble=0
 failartemis=0
@@ -14,6 +20,10 @@ do
     echo "BLE stuff failed"
     failble=`expr $failble + 1`
   else
+    grep Raspbian /etc/os-release >/dev/null
+    if [ $? -eq 0 ]; then
+      ./led.py green
+    fi
     failble=0
   fi
   if [ $failble -eq 0 ]; then
@@ -24,6 +34,10 @@ do
         echo "Artemis stuff failed"
         failartemis=`expr $failartemis + 1`
       else 
+        grep Raspbian /etc/os-release >/dev/null
+        if [ $? -eq 0 ]; then
+          ./led.py blue
+        fi
         failartemis=0
       fi
     done
@@ -31,6 +45,10 @@ do
   # 2 failures in a row, probably something wrong
   if [ $failble -gt 2  -o  $failartemis -gt 1 ]; then
     echo "BLE $failble Artemis $failartemis so failed"
+    grep Raspbian /etc/os-release >/dev/null
+    if [ $? -eq 0 ]; then
+      ./led.py red
+    fi
     break 
   fi
 done
