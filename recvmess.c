@@ -171,13 +171,10 @@ int main(int argc, char* argv[])
 			usleep(10000L);
 		#endif
 
+        printf("finished: %d subscribed %d\n", finished, subscribed);
+        fflush(stdout);
 	if (finished)
 		goto exit;
-
-	do 
-	{
-		ch = getchar();
-	} while (ch!='Q' && ch != 'q');
 
 	disc_opts.onSuccess = onDisconnect;
 	disc_opts.onFailure = onDisconnectFailure;
