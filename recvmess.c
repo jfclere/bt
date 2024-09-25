@@ -115,8 +115,8 @@ void onConnect(void* context, MQTTAsync_successData* response)
 
 	printf("Successful connection\n");
 
-	printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n"
-           "Press Q<Enter> to quit\n\n", TOPIC, CLIENTID, QOS);
+	printf("Subscribing to topic %s\nfor client %s using QoS%d\n",
+           TOPIC, CLIENTID, QOS);
 	opts.onSuccess = onSubscribe;
 	opts.onFailure = onSubscribeFailure;
 	opts.context = client;
@@ -164,12 +164,13 @@ int main(int argc, char* argv[])
 		goto destroy_exit;
 	}
 
-	while (!subscribed && !finished)
+	while (!finished) {
 		#if defined(_WIN32)
 			Sleep(100);
 		#else
 			usleep(10000L);
 		#endif
+        }
 
         printf("finished: %d subscribed %d\n", finished, subscribed);
         fflush(stdout);
