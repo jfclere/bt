@@ -78,6 +78,15 @@ void onSend(void* context, MQTTAsync_successData* response)
                 exit(EXIT_FAILURE);
         }
 }
+void onFailure(void* context, MQTTAsync_failureData *response)
+{
+        printf("Message with token value %d failed\n", response->token);
+        if (response->message)
+                printf("Code %d, %s\n", response->code, response->message);
+        else
+                printf("Code %d\n");
+        finished = -1;
+}
 void onConnectFailure(void* context, MQTTAsync_failureData* response)
 {
         printf("Connect failed, rc %d\n", response ? response->code : 0);
@@ -93,6 +102,7 @@ void onConnect(void* context, MQTTAsync_successData* response)
         struct info info;
         printf("Successful connection\n");
         opts.onSuccess = onSend;
+        opts.onFailure = onFailure;
         opts.context = client;
         /* table created as:
          *   CREATE TABLE measurements (
@@ -179,12 +189,18 @@ int main(int argc, char* argv[])
         printf("Waiting for publication of %s\n"
          "on topic %s for client with ClientID: %s\n",
          PAYLOAD, TOPIC, CLIENTID);
-        while (!finished)
+        int loop = 0;
+        while (!finished) {
                 #if defined(WIN32) || defined(WIN64)
                         Sleep(100);
                 #else
                         usleep(10000L);
                 #endif
+                loop++;
+                if (loop == 6000) {
+                        finished = -1; /* timeout after 60 seconds */ 
+                }
+        }
         MQTTAsync_destroy(&client);
         if (finished == -1) {
             printf("Something failed\n");
