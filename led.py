@@ -24,16 +24,22 @@ args = sys.argv[1:]
 if len(args) == 1:
   valled=sys.argv[1]
 
+
 LED = RED
 if valled == "blue":
   LED = BLUE
 if valled == "green":
   LED = GREEN
 
-val = GPIO.input(LED)
-if val == GPIO.HIGH:
-  val = GPIO.LOW
+if valled == "off":
+  # switch off all leds
+  GPIO.output(RED, GPIO.LOW)
+  GPIO.output(BLUE, GPIO.LOW)
+  GPIO.output(GREEN, GPIO.LOW)
 else:
-  val = GPIO.HIGH
-
-GPIO.output(LED, val)
+  val = GPIO.input(LED)
+  if val == GPIO.HIGH:
+    val = GPIO.LOW
+  else:
+    val = GPIO.HIGH
+  GPIO.output(LED, val)

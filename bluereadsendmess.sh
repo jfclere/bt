@@ -1,6 +1,10 @@
 #!/bin/bash
 
 # Read value from BLE and send them to artemis
+if [ "x$HOME" == "x" ]; then
+  HOME=/home/pi
+  cd $HOME/bt
+fi
 
 grep Raspbian /etc/os-release >/dev/null
 if [ $? -eq 0 ]; then
@@ -15,6 +19,7 @@ while true
 do
   # We get files like /tmp/dongle1.txt
   rm -f /tmp/dongle*.txt
+  ./led.py off
   $HOME/bt/bluez_inc/examples/central/central dongle
   if [ $? -ne 0 ]; then
     echo "BLE stuff failed"
