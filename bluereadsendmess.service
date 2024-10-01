@@ -1,0 +1,15 @@
+[Unit]
+Description=dongle BLE sender to Artemis
+After=network.target
+
+[Service]
+User=pi
+Restart=always
+RestartSec=30s
+WorkingDirectory=/home/pi/bt
+ExecStart=/home/pi/bt/bluereadsendmess.sh
+StandardOutput=inherit
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
