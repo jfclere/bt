@@ -29,7 +29,7 @@ do
   if [ $failble -eq 0 ]; then
     for file in `ls /tmp/dongle*.txt`
     do
-      $HOME/sendfileserver.py $file
+      $HOME/bt/sendfileserver.py $file
       if [ $? -ne 0 ]; then
         echo "Send file  stuff failed"
         failartemis=`expr $failartemis + 1`
