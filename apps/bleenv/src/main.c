@@ -401,8 +401,13 @@ static int my_sensor()
     } else
         console_printf("my_sensor_app dev YES!!!\n");
 
-    bme280_sensor_configure();
-    console_printf("my_sensor_app bme280_sensor_configure DONE\n");
+    rc = bme280_sensor_configure();
+    if (rc) {
+        console_printf("my_sensor_app bme280_sensor_configure FAILED\n");
+        return rc;
+    } else {
+        console_printf("my_sensor_app bme280_sensor_configure DONE\n");
+    }
 
     bme280_sensor = sensor_mgr_find_next_bydevname(MY_SENSOR_DEVICE, NULL);
 
@@ -458,6 +463,8 @@ mynewt_main(int argc, char **argv)
     if (rc) {
         console_printf("sensor part failed!!!\n");
     }
+    /* restart until we have a sensor */
+    assert(rc == 0);
 
     /* Initialize the NimBLE host configuration */
     ble_hs_cfg.sync_cb = blecsc_on_sync;
