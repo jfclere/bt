@@ -50,6 +50,9 @@
 #define MY_SENSOR_DEVICE "bme280"
 #define MY_SENSOR_POLL_TIME 2000
 
+/* For the LED logic */
+int g_led_pin;
+
 /* value stored locally for BLE use */
 float temp;
 float press;
@@ -249,6 +252,7 @@ blecsc_gap_event(struct ble_gap_event *event, void *arg)
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
         console_printf("BLE_GAP_EVENT_CONNECT\n");
+        hal_gpio_write(g_led_pin, 1);
         /* A new connection was established or a connection attempt failed */
         MODLOG_DFLT(INFO, "connection %s; status=%d\n",
                     event->connect.status == 0 ? "established" : "failed",
@@ -266,6 +270,7 @@ blecsc_gap_event(struct ble_gap_event *event, void *arg)
 
     case BLE_GAP_EVENT_DISCONNECT:
         console_printf("BLE_GAP_EVENT_DISCONNECT\n");
+        hal_gpio_write(g_led_pin, 0);
         MODLOG_DFLT(INFO, "disconnect; reason=%d\n", event->disconnect.reason);
         conn_handle = 0;
         /* Connection terminated; resume advertising */
@@ -308,39 +313,6 @@ blecsc_on_sync(void)
 
     /* Begin advertising */
     blecsc_advertise();
-}
-
-/* Do the LED logic */
-static volatile int g_task1_loops;
-int g_led_pin;
-
-/* The timer callout */
-static struct os_callout blinky_callout;
-
-/*
- * Event callback function for timer events. It toggles the led pin.
- */
-static void
-timer_ev_cb(struct os_event *ev)
-{
-    assert(ev != NULL);
-
-    ++g_task1_loops;
-    hal_gpio_toggle(g_led_pin);
-
-    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
-}
-
-static void
-init_timer(void)
-{
-    /*
-     * Initialize the callout for a timer event.
-     */
-    os_callout_init(&blinky_callout, os_eventq_dflt_get(),
-                    timer_ev_cb, NULL);
-
-    os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
 }
 
 /*
@@ -419,8 +391,7 @@ mynewt_main(int argc, char **argv)
     sysinit();
 
     g_led_pin = LED_BLINK_PIN;
-    hal_gpio_init_out(g_led_pin, 1);
-    init_timer();
+    hal_gpio_init_out(g_led_pin, 0);
 
     console_printf("bleenv starting!!!\n");
 
