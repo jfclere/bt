@@ -35,8 +35,6 @@
 /* 2A6F = Unit is in percent with a resolution of 0.01 uint16 */
 #define HUM_VAL 3751
 
-#define CSC_FEATURES 1234
-
 static const char *manuf_name = "Apache Mynewt";
 static const char *model_num = "Mynewt Env Sensor";
 
