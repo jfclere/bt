@@ -40,12 +40,7 @@ float get_temp();
 float get_press();
 float get_humid();
 
-extern uint16_t csc_measurement_handle; /* XXX */
-extern uint16_t csc_control_point_handle; /* XXX */
-
 int gatt_svr_init(struct ble_env_measurement_state * env_measurement_state);
-int gatt_svr_chr_notify_env_measurement(uint16_t conn_handle);
-void gatt_svr_set_cp_indicate(uint8_t indication_status);
 
 #ifdef __cplusplus
 }

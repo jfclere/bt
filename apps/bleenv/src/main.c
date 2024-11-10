@@ -72,8 +72,8 @@ static int
 read_bme280_temp(struct sensor* sensor, void *arg, void *databuf, sensor_type_t type)
 {
     struct sensor_temp_data *std = databuf;
-    console_printf("read_bme280!!!\n");
-    console_printf("Temperature=%lf (valid %d)\n", std->std_temp, std->std_temp_is_valid);
+    // console_printf("read_bme280!!!\n");
+    // console_printf("Temperature=%lf (valid %d)\n", std->std_temp, std->std_temp_is_valid);
     temp = std->std_temp;
     return 0;
 }
@@ -82,7 +82,7 @@ static int
 read_bme280_press(struct sensor* sensor, void *arg, void *databuf, sensor_type_t type)
 {
     struct sensor_press_data *std = databuf;
-    console_printf("Pressure=%lf (valid %d)\n", std->spd_press, std->spd_press_is_valid);
+    // console_printf("Pressure=%lf (valid %d)\n", std->spd_press, std->spd_press_is_valid);
     press = std->spd_press;
     return 0;
 }
@@ -91,7 +91,7 @@ static int
 read_bme280_hum(struct sensor* sensor, void *arg, void *databuf, sensor_type_t type)
 {
     struct sensor_humid_data *std = databuf;
-    console_printf("Humidity=%lf (valid %d)\n", std->shd_humid, std->shd_humid_is_valid);
+    // console_printf("Humidity=%lf (valid %d)\n", std->shd_humid, std->shd_humid_is_valid);
     humid  = std->shd_humid;
     return 0;
 }
@@ -160,9 +160,6 @@ bme280_sensor_configure(void)
     return 0;
 }
 
-/* Noticication status */
-static bool notify_state = false;
-
 /* Connection handle */
 static uint16_t conn_handle;
 
@@ -176,10 +173,7 @@ static const char *device_name = MYNEWT_VAL(BLE_SENSOR_NAME);
 static const char *device_name = "changeit";
 #endif
 
-/* Measurement and notification timer */
-static struct os_callout bleenv_measure_timer;
-
-/* Variable holds current CSC measurement state */
+/* Variable holds current env measurement state */
 static struct ble_env_measurement_state env_measurement_state;
 
 static int blecsc_gap_event(struct ble_gap_event *event, void *arg);
@@ -249,35 +243,12 @@ blecsc_advertise(void)
     }
 }
 
-
- /* mesure our stuff here */
-static void
-blecsc_simulate_speed_and_cadence(void)
-{
-}
-
-/* Run CSC measurement simulation and notify it to the client */
-static void
-blecsc_measurement(struct os_event *ev)
-{
-    int rc;
-
-    rc = os_callout_reset(&bleenv_measure_timer, OS_TICKS_PER_SEC);
-    assert(rc == 0);
-
-    blecsc_simulate_speed_and_cadence();
-
-    if (notify_state) {
-        rc = gatt_svr_chr_notify_env_measurement(conn_handle);
-        assert(rc == 0);
-    }
-}
-
 static int
 blecsc_gap_event(struct ble_gap_event *event, void *arg)
 {
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
+        console_printf("BLE_GAP_EVENT_CONNECT\n");
         /* A new connection was established or a connection attempt failed */
         MODLOG_DFLT(INFO, "connection %s; status=%d\n",
                     event->connect.status == 0 ? "established" : "failed",
@@ -294,6 +265,7 @@ blecsc_gap_event(struct ble_gap_event *event, void *arg)
         break;
 
     case BLE_GAP_EVENT_DISCONNECT:
+        console_printf("BLE_GAP_EVENT_DISCONNECT\n");
         MODLOG_DFLT(INFO, "disconnect; reason=%d\n", event->disconnect.reason);
         conn_handle = 0;
         /* Connection terminated; resume advertising */
@@ -305,22 +277,15 @@ blecsc_gap_event(struct ble_gap_event *event, void *arg)
         break;
 
     case BLE_GAP_EVENT_SUBSCRIBE:
+        console_printf("BLE_GAP_EVENT_SUBSCRIBE %d\n", event->subscribe.attr_handle);
         MODLOG_DFLT(INFO, "subscribe event attr_handle=%d\n",
                     event->subscribe.attr_handle);
 
-        if (event->subscribe.attr_handle == csc_measurement_handle) {
-            notify_state = event->subscribe.cur_notify;
-            MODLOG_DFLT(INFO, "csc measurement notify state = %d\n",
-                        notify_state);
-        }
-        else if (event->subscribe.attr_handle == csc_control_point_handle) {
-            gatt_svr_set_cp_indicate(event->subscribe.cur_indicate);
-            MODLOG_DFLT(INFO, "csc control point indicate state = %d\n",
-                        event->subscribe.cur_indicate);
-        }
+        /* XXX: we have event->subscribe.attr_handle = 9 */
         break;
 
     case BLE_GAP_EVENT_MTU:
+        console_printf("BLE_GAP_EVENT_MTU\n");
         MODLOG_DFLT(INFO, "mtu update event; conn_handle=%d mtu=%d\n",
                     event->mtu.conn_handle,
                     event->mtu.value);
@@ -336,6 +301,7 @@ blecsc_on_sync(void)
 {
     int rc;
 
+    console_printf("blecsc_on_sync\n");
     /* Figure out address to use while advertising (no privacy) */
     rc = ble_hs_id_infer_auto(0, &blecsc_addr_type);
     assert(rc == 0);
@@ -469,13 +435,7 @@ mynewt_main(int argc, char **argv)
     /* Initialize the NimBLE host configuration */
     ble_hs_cfg.sync_cb = blecsc_on_sync;
 
-    /* Initialize measurement and notification timer */
-    os_callout_init(&bleenv_measure_timer, os_eventq_dflt_get(),
-                    blecsc_measurement, NULL);
-    rc = os_callout_reset(&bleenv_measure_timer, OS_TICKS_PER_SEC);
-    console_printf("bleenv os_callout_reset %d!!!\n", rc);
-    assert(rc == 0);
-
+    /* Initialize gatt service */
     rc = gatt_svr_init(&env_measurement_state);
     console_printf("bleenv gatt_svr_init %d!!!\n", rc);
     assert(rc == 0);
