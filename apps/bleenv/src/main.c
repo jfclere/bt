@@ -45,6 +45,9 @@
 
 #include <bme280/bme280.h>
 
+#include <adc/adc.h>
+#include "myadc.h"
+
 #define LISTENER_CB 1
 #define READ_CB 2
 #define MY_SENSOR_DEVICE "bme280"
@@ -57,6 +60,7 @@ int g_led_pin;
 float temp;
 float press;
 float humid;
+uint16_t bat;
 /* getters for the values */
 float get_temp()
 {
@@ -69,6 +73,10 @@ float get_press()
 float get_humid()
 {
     return humid;
+}
+uint16_t get_bat()
+{
+    return bat;
 }
 
 static int
@@ -395,6 +403,14 @@ mynewt_main(int argc, char **argv)
 
     console_printf("bleenv starting!!!\n");
 
+    /* Create the ADC reader task.
+     * All sensor operations are performed in this task.
+     */
+    // adc_init();
+    console_printf("bleenv adc_init DONE!!!\n");
+    start_adc_task();
+    goto next;
+
     /* sensor part */
     rc = my_sensor();
     if (rc) {
@@ -413,13 +429,13 @@ mynewt_main(int argc, char **argv)
 
     /* Set the default device name */
     rc = ble_svc_gap_device_name_set(device_name);
-    console_printf("bleenv gble_svc_gap_device_name_set %d to %s!!!\n", rc, device_name);
+    console_printf("bleenv ble_svc_gap_device_name_set %d to %s!!!\n", rc, device_name);
     assert(rc == 0);
 
     /* As the last thing, process events from default event queue */
+    next:
     while (1) {
         os_eventq_run(os_eventq_dflt_get());
     }
     return 0;
 }
-

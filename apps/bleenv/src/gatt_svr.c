@@ -64,9 +64,69 @@ gatt_svr_chr_access_device_info(uint16_t conn_handle,
                                 struct ble_gatt_access_ctxt *ctxt,
                                 void *arg);
 
+static int
+gatt_svr_chr_write(struct os_mbuf *om, uint16_t min_len, uint16_t max_len,
+                   void *dst, uint16_t *len)
+{
+    uint16_t om_len;
+    int rc;
+
+    om_len = OS_MBUF_PKTLEN(om);
+    if (om_len < min_len || om_len > max_len) {
+        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
+    }
+
+    rc = ble_hs_mbuf_to_flat(om, dst, max_len, len);
+    if (rc != 0) {
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+
+    return 0;
+}
+
+static int
+gatt_svr_sns_access(uint16_t conn_handle, uint16_t attr_handle,
+                          struct ble_gatt_access_ctxt *ctxt,
+                          void *arg)
+{
+    uint16_t uuid16;
+    int rc;
+
+    uuid16 = ble_uuid_u16(ctxt->chr->uuid);
+
+    switch (uuid16) {
+    case ADC_SNS_TYPE:
+        assert(ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR);
+        rc = os_mbuf_append(ctxt->om, ADC_SNS_STRING, sizeof ADC_SNS_STRING);
+        MODLOG_DFLT(DEBUG, "ADC SENSOR TYPE READ: %s\n", ADC_SNS_STRING);
+        return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
+
+    case ADC_SNS_VAL:
+        if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR) {
+            uint16_t gatt_adc_val;
+            gatt_adc_val = get_bat();
+            rc = gatt_svr_chr_write(ctxt->om, 0,
+                                    sizeof gatt_adc_val,
+                                    &gatt_adc_val,
+                                    NULL);
+            return rc;
+        } else if (ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR) {
+            uint16_t gatt_adc_val;
+            gatt_adc_val = get_bat();
+            rc = os_mbuf_append(ctxt->om, &gatt_adc_val,
+                                sizeof gatt_adc_val);
+            return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
+        }
+
+    default:
+        assert(0);
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+}
+
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
-        /* Service: Cycling Speed and Cadence */
+        /* Service: Environmental Sensing Service */
         .type = BLE_GATT_SVC_TYPE_PRIMARY,
         .uuid = BLE_UUID16_DECLARE(0x181A),
         .characteristics = (struct ble_gatt_chr_def[]) { {
@@ -104,8 +164,28 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             .access_cb = gatt_svr_chr_access_device_info,
             .flags = BLE_GATT_CHR_F_READ,
         }, {
-            0, /* No more characteristics in this service */
-        }, }
+            0, /* No more characteristics in this service. */
+        } },
+    },
+
+    {
+        /* Service: Battery Service */
+        /*** ADC Level Notification Service. */
+        .type = BLE_GATT_SVC_TYPE_PRIMARY,
+        .uuid = BLE_UUID16_DECLARE(0x180F),
+        .characteristics = (struct ble_gatt_chr_def[]) { {
+            /* Characteristic:  Battery Level */
+            .uuid = BLE_UUID16_DECLARE(ADC_SNS_TYPE),
+            .access_cb = gatt_svr_sns_access,
+            .flags = BLE_GATT_CHR_F_READ,
+        }, {
+            .uuid = BLE_UUID16_DECLARE(ADC_SNS_VAL),
+            .access_cb = gatt_svr_sns_access,
+            .flags = BLE_GATT_CHR_F_READ,
+            /* .flags = BLE_GATT_CHR_F_NOTIFY, */
+        }, {
+            0, /* No more characteristics in this service. */
+        } },
     },
 
     {

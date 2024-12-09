@@ -19,6 +19,7 @@
 
 #include "modlog/modlog.h"
 #include "nimble/ble.h"
+#include "host/ble_uuid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,11 @@ extern "C" {
 #define GATT_DEVICE_INFO_UUID                   0x180A
 #define GATT_MANUFACTURER_NAME_UUID             0x2A29
 #define GATT_MODEL_NUMBER_UUID                  0x2A24
+
+/* ADC Sensor Data Stuff */
+#define ADC_SNS_TYPE          0xDEAD
+#define ADC_SNS_STRING "eTape Liquid Level Sensor"
+#define ADC_SNS_VAL           0x2A19
 
 struct ble_env_measurement_state {
     double temperature;
@@ -39,6 +45,7 @@ struct ble_env_measurement_state {
 float get_temp();
 float get_press();
 float get_humid();
+uint16_t get_bat();
 
 int gatt_svr_init(struct ble_env_measurement_state * env_measurement_state);
 
