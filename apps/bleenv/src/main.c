@@ -56,11 +56,16 @@
 /* For the LED logic */
 int g_led_pin;
 
+/* For adc queue */
+struct os_eventq adc_evq;
+
 /* value stored locally for BLE use */
 float temp;
 float press;
 float humid;
-uint16_t bat;
+#define VMIN 2.5f
+#define VMAX 4.2f
+#define VFACTOR 1.3f
 /* getters for the values */
 float get_temp()
 {
@@ -76,7 +81,14 @@ float get_humid()
 }
 uint16_t get_bat()
 {
-    return bat;
+    float bat = (float) get_result_mv();
+    bat = bat * VFACTOR;
+    if (bat>VMIN)
+        bat =  ((VMAX - VMIN) / 100.0f)  * (bat - VMIN);
+    else
+        bat = 0.0;
+    console_printf("bat: %f\n", bat);
+    return (uint16_t) bat;
 }
 
 static int
@@ -401,15 +413,7 @@ mynewt_main(int argc, char **argv)
     g_led_pin = LED_BLINK_PIN;
     hal_gpio_init_out(g_led_pin, 0);
 
-    console_printf("bleenv starting!!!\n");
-
-    /* Create the ADC reader task.
-     * All sensor operations are performed in this task.
-     */
-    // adc_init();
-    console_printf("bleenv adc_init DONE!!!\n");
-    start_adc_task();
-    goto next;
+    console_printf("\nbleenv starting!!!\n");
 
     /* sensor part */
     rc = my_sensor();
@@ -432,8 +436,13 @@ mynewt_main(int argc, char **argv)
     console_printf("bleenv ble_svc_gap_device_name_set %d to %s!!!\n", rc, device_name);
     assert(rc == 0);
 
+    /* Create the ADC reader task.
+     * All sensor operations are performed in this task.
+     */
+    os_eventq_init(&adc_evq);
+    start_adc_task();
+
     /* As the last thing, process events from default event queue */
-    next:
     while (1) {
         os_eventq_run(os_eventq_dflt_get());
     }

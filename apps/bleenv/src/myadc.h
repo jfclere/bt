@@ -1,2 +1,2 @@
 void start_adc_task();
-void adc_init();
+uint16_t get_result_mv();

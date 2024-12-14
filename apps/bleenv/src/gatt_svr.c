@@ -113,6 +113,7 @@ gatt_svr_sns_access(uint16_t conn_handle, uint16_t attr_handle,
         } else if (ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR) {
             uint16_t gatt_adc_val;
             gatt_adc_val = get_bat();
+            MODLOG_DFLT(DEBUG, "ADC SENSOR TYPE READ: %d\n", gatt_adc_val);
             rc = os_mbuf_append(ctxt->om, &gatt_adc_val,
                                 sizeof gatt_adc_val);
             return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
