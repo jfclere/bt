@@ -31,9 +31,7 @@ extern "C" {
 #define GATT_MODEL_NUMBER_UUID                  0x2A24
 
 /* ADC Sensor Data Stuff */
-#define ADC_SNS_TYPE          0xDEAD
-#define ADC_SNS_STRING "eTape Liquid Level Sensor"
-#define ADC_SNS_VAL           0x2A19
+#define ADC_SNS_VAL           0x2A19 // Battery Level
 
 struct ble_env_measurement_state {
     double temperature;

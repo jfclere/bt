@@ -95,12 +95,6 @@ gatt_svr_sns_access(uint16_t conn_handle, uint16_t attr_handle,
     uuid16 = ble_uuid_u16(ctxt->chr->uuid);
 
     switch (uuid16) {
-    case ADC_SNS_TYPE:
-        assert(ctxt->op == BLE_GATT_ACCESS_OP_READ_CHR);
-        rc = os_mbuf_append(ctxt->om, ADC_SNS_STRING, sizeof ADC_SNS_STRING);
-        MODLOG_DFLT(DEBUG, "ADC SENSOR TYPE READ: %s\n", ADC_SNS_STRING);
-        return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
-
     case ADC_SNS_VAL:
         if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR) {
             uint16_t gatt_adc_val;
@@ -176,10 +170,6 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
         .uuid = BLE_UUID16_DECLARE(0x180F),
         .characteristics = (struct ble_gatt_chr_def[]) { {
             /* Characteristic:  Battery Level */
-            .uuid = BLE_UUID16_DECLARE(ADC_SNS_TYPE),
-            .access_cb = gatt_svr_sns_access,
-            .flags = BLE_GATT_CHR_F_READ,
-        }, {
             .uuid = BLE_UUID16_DECLARE(ADC_SNS_VAL),
             .access_cb = gatt_svr_sns_access,
             .flags = BLE_GATT_CHR_F_READ,
