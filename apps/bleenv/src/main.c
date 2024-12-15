@@ -45,7 +45,6 @@
 
 #include <bme280/bme280.h>
 
-#include <adc/adc.h>
 #include "myadc.h"
 
 #define LISTENER_CB 1

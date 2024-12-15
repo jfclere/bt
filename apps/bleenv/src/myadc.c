@@ -1,6 +1,8 @@
 #include "syscfg/syscfg.h"
 #include "sysinit/sysinit.h"
 #include <os/os.h>
+#if MYNEWT_VAL(ADC_0) == 1
+
 #include <bsp/bsp.h>
 #include <adc/adc.h>
 #include <adc_nrf52/adc_nrf52.h>
@@ -169,3 +171,12 @@ void start_adc_task()
                  adc_stack,
                  ADC_STACK_SIZE);
 }
+#else
+void start_adc_task()
+{
+}
+uint16_t get_result_mv()
+{
+    return 0;
+}
+#endif
