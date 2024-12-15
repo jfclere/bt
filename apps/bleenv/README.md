@@ -25,8 +25,18 @@ I2C_0_PIN_SCL=27:I2C_0_PIN_SDA=26
 ```
 I2C_0_PIN_SCL=26:I2C_0_PIN_SDA=25
 ```
+I have used ada_feather_nrf52 as bsp.
+## nRF52840 Dongle
+```
+I2C_0_PIN_SCL=15:I2C_0_PIN_SDA=13
+```
+I have used PIN 0.15 and 0.13 on the board and nordic_pca10059 as bsp.
 
 ## For each BLE device use a different Device ID for example:
 ```
 BLE_LL_PUBLIC_DEV_ADDR=0x1122aabb33cd
+```
+and a name like:
+```
+BLE_SENSOR_NAME="dongle10"
 ```
