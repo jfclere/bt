@@ -32,6 +32,9 @@ I2C_0_PIN_SCL=15:I2C_0_PIN_SDA=13
 ```
 I have used PIN 0.15 and 0.13 on the board and nordic_pca10059 as bsp.
 
+## nRF52840 Dongle without debugger to flash (using dfu)
+See https://github.com/apache/mynewt-core/tree/master/hw/bsp/nordic_pca10059
+
 ## For each BLE device use a different Device ID for example:
 ```
 BLE_LL_PUBLIC_DEV_ADDR=0x1122aabb33cd
