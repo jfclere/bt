@@ -40,7 +40,7 @@ def main():
   headers = {'Content-type': 'text/plain'}
   url = "https://" + info.server + "/webdav/" + info.REMOTE_DIR + tmp
   print("sending: ", path, " to: ", url)
-  requests.put(url, data=open(path, 'r'), headers=headers, auth=(info.login, info.password))
+  requests.put(url, data=open(path, 'r'), headers=headers, auth=(info.login, info.password), timeout=20)
 
   print("Done")
 
