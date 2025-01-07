@@ -1,0 +1,84 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Settings this BSP defines.
+syscfg.defs:
+    BSP_NRF52:
+        description: 'Set to indicate that BSP has NRF52'
+        value: 1
+
+    SOFT_PWM:
+        description: 'Enable soft PWM'
+        value: 0
+
+    UARTBB_0:
+        description: 'Enable bit-banger UART 0'
+        value: 0
+
+# Settings this BSP overrides.
+syscfg.vals:
+    # Enable nRF52832 MCU and common startup code
+    MCU_TARGET: nRF52832
+    MCU_COMMON_STARTUP: 1
+
+    MCU_RAM_START: 0x20000000
+    MCU_RAM_SIZE: 0x10000
+
+    # Set default pins for peripherals
+    UART_0_PIN_TX: 20
+    UART_0_PIN_RX: 9
+
+    # CIPO/COPI are MISO/MOSI
+    SPI_0_MASTER_PIN_CS: 31
+    SPI_0_MASTER_PIN_SCK: 3
+    SPI_0_MASTER_PIN_MOSI: 4
+    SPI_0_MASTER_PIN_MISO: 5
+
+    SPI_1_MASTER_PIN_CS: 29
+    SPI_1_MASTER_PIN_SCK: 11
+    SPI_1_MASTER_PIN_MOSI: 27
+    SPI_1_MASTER_PIN_MISO: 28
+
+    I2C_0_PIN_SCL: 16
+    I2C_0_PIN_SDA: 15
+
+    I2C_1_PIN_SCL: 23
+    I2C_1_PIN_SDA: 22
+
+    CONFIG_FCB_FLASH_AREA: FLASH_AREA_NFFS
+    REBOOT_LOG_FLASH_AREA: FLASH_AREA_REBOOT_LOG
+    NFFS_FLASH_AREA: FLASH_AREA_NFFS
+    COREDUMP_FLASH_AREA: FLASH_AREA_IMAGE_1
+    MCU_DCDC_ENABLED: 1
+    MCU_LFCLK_SOURCE: LFXO
+    BOOT_SERIAL_DETECT_PIN: 21
+
+# The module on the board has +/- 40 ppm crystal. A value of 5 is
+# for crystals in the range of 31 to 50 ppm.
+# SIT1532AI-J4-DCC MEMS 32.7680 kHz Oscillator
+# Frequency Stability (ppm) 	75, 100, 250
+# guess from google 100
+    BLE_LL_SCA: 100
+
+syscfg.vals.BLE_CONTROLLER:
+    TIMER_0: 0
+    TIMER_5: 1
+    OS_CPUTIME_FREQ: 32768
+    OS_CPUTIME_TIMER_NUM: 5
+    BLE_LL_RFMGMT_ENABLE_TIME: 1500
