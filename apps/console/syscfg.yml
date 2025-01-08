@@ -1,0 +1,20 @@
+syscfg.vals:
+    # Enable the shell task.
+    SHELL_TASK: 1
+    SHELL_PROMPT_MODULE: 1
+    I2C_0: 1
+    BUS_DRIVER_PRESENT: 1
+    SENSOR_OIC: 0
+
+# Settings this app overrides.
+syscfg.defs:
+    BQ25120_NODE_BUS_NAME:
+        description: Name of bus device where BQ25120 is attached
+        value: '"i2c0"'
+    BQ25120_NODE_I2C_ADDRESS:
+        description: I2C address of BQ25120 device
+        value: 0x6A
+    BQ25120_NODE_I2C_FREQUENCY:
+        description: I2C frequency [kHz] to use for BQ25120
+        value: 100
+
