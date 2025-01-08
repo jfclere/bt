@@ -61,23 +61,15 @@ static void
 timer_ev_cb(struct os_event *ev)
 {
     uint8_t i2c_num = 0;
-    struct hal_i2c_master_data data;
+    uint8_t address = 0x6A;
     assert(ev != NULL);
 
     ++g_task1_loops;
     hal_gpio_toggle(g_led_pin);
     console_printf("timer_ev_cb: hal_gpio_toggle\n");
 
-    data.address = 0x6A;
-    data.len = 2;
-    uint8_t buf[2];
-    // unsigned char buf[2];
-    buf[0] = 0x07;
-    buf[1] = 0xA8; // 1.8 V 
-    buf[1] = 0xE4; // 3.3 V 
-    data.buffer = buf;
-    int rc = hal_i2c_master_write(i2c_num, &data, OS_TICKS_PER_SEC, 1);
-    console_printf("timer_ev_cb:  hal_i2c_master_write %d\n", rc);
+    int rc = hal_i2c_master_probe(i2c_num, address, OS_TICKS_PER_SEC);
+    console_printf("timer_ev_cb:  hal_i2c_master_probe %d\n", rc);
 
     os_callout_reset(&blinky_callout, OS_TICKS_PER_SEC);
 }
