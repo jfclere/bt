@@ -26,6 +26,7 @@
 #include "bsp/bsp.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_i2c.h"
+#include "mcu/nrf52_hal.h"
 #include "bus/bus.h"
 #include <syscfg/syscfg.h>
 #include <sensor/sensor.h>
@@ -37,12 +38,11 @@
  * for the led to blink.
  */
 
-static const struct bus_i2c_node_cfg g_bq25120_i2c_node_cfg = {
-    .node_cfg = {
-        .bus_name = "i2c0",
-    },
-    .addr = 0x6A,
-    .freq = 100,
+/* Use nrf52 specifics */
+static const struct nrf52_hal_i2c_cfg g_bq25120_i2c_node_cfg = {
+    .i2c_frequency = MYNEWT_VAL(BQ25120_NODE_I2C_FREQUENCY),
+    .scl_pin = MYNEWT_VAL(I2C_0_PIN_SCL),
+    .sda_pin = MYNEWT_VAL(I2C_0_PIN_SDA),
 };
 
 
