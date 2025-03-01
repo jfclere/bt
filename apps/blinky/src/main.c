@@ -22,6 +22,7 @@
 
 #include "sysinit/sysinit.h"
 #include "os/os.h"
+#include "console/console.h"
 #include "bsp/bsp.h"
 #include "hal/hal_gpio.h"
 
