@@ -59,7 +59,7 @@ class nodeinfo:
   # get our configuration from server
   def read(self):
     try:
-      r = requests.get('https://' + self.server + '/machines/' + self.machine_id)
+      r = requests.get('https://' + self.server + '/machines/' + self.machine_id, timeout=20)
       if (r.status_code == 200):
         # Read the information
         i = 0
