@@ -1,3 +1,6 @@
+sendiotdb: sendiotdb.c
+	cc -c sendiotdb.c
+	cc -o sendiotdb sendiotdb.o -l paho-mqtt3as
 sendmess: sendmess.c
 	cc -c sendmess.c
 	cc -o sendmess sendmess.o -l paho-mqtt3as
