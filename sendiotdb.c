@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include "MQTTAsync.h"
 /* ADDRESS should a parameter */
-#define ADDRESS     "tcp://localhost:1883"
+#define ADDRESS     "tcp://192.168.1.160:1883"
 /* #define ADDRESS     "mqtts://jfclere.myddns.me:8001" */
 #define CLIENTID    "ExampleClientPub"
 /* we use topic/# in receiver so /topic/dongle(n) here */
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
         filename = argv[1];
         int fd = open(filename, O_RDONLY, 0);
         if (fd < 0) {
-            printf("Can't openssl %s\n", filename);
+            printf("Can't open %s\n", filename);
             exit(1);
         }
         close(fd);
