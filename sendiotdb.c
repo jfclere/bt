@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/time.h>
 #include <stdbool.h>
 #include "MQTTAsync.h"
 /* ADDRESS should a parameter */
@@ -25,6 +26,18 @@ struct info {
    float humi;
 };
 char *filename;
+
+/**
+* @brief provide same output with the native function in java called
+* currentTimeMillis().
+*/
+int64_t currentTimeMillis() {
+  struct timeval time;
+  gettimeofday(&time, NULL);
+  int64_t s1 = (int64_t)(time.tv_sec) * 1000;
+  int64_t s2 = (time.tv_usec / 1000);
+  return s1 + s2;
+}
 
 void getinfo(struct info *info, char *filename)
 {
@@ -118,10 +131,10 @@ void onConnect(void* context, MQTTAsync_successData* response)
          *  humi NUMERIC(5,2));
          */
         getinfo(&info, filename);
-        time_t t = time(NULL);
+        int64_t t = currentTimeMillis();
 
         /* build the json mess  */
-        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%d,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", "root.bme280", t, info.temp, info.pres, info.humi, 0.0);
+        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%lld,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", "root.bme280", t, info.temp, info.pres, info.humi, 0.0);
         pubmsg.payload = mess;
         pubmsg.payloadlen = strlen(mess);
         pubmsg.qos = QOS;
