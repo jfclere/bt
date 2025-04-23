@@ -131,21 +131,26 @@ void onConnect(void* context, MQTTAsync_successData* response)
          *  humi NUMERIC(5,2));
          */
         getinfo(&info, filename);
-        int64_t t = currentTimeMillis();
 
-        /* build the json mess  */
-        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%lld,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", "root.bme280", t, info.temp, info.pres, info.humi, 0.0);
-        pubmsg.payload = mess;
-        pubmsg.payloadlen = strlen(mess);
-        pubmsg.qos = QOS;
-        pubmsg.retained = 0;
-        deliveredtoken = 0;
+        int64_t t = currentTimeMillis();
 
         char *devicenametxt = strrchr(filename, '/');
         devicenametxt++;
         char *devicename = strdup(devicenametxt);
         char *dot = strchr(devicename, '.');
         *dot = '\0';
+        char device[100];
+        strcpy(device, "root.");
+        strcat(device, devicename);
+
+        /* build the json mess  */
+        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%lld,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", device, t, info.temp, info.pres, info.humi, 0.0);
+        pubmsg.payload = mess;
+        pubmsg.payloadlen = strlen(mess);
+        pubmsg.qos = QOS;
+        pubmsg.retained = 0;
+        deliveredtoken = 0;
+
         char topic[100];
         sprintf(topic,"topic/%s", devicename);
         printf("Sending %s on %s\n", mess, TOPIC);
