@@ -153,9 +153,9 @@ void onConnect(void* context, MQTTAsync_successData* response)
 
         char topic[100];
         sprintf(topic,"topic/%s", devicename);
-        printf("Sending %s on %s\n", mess, TOPIC);
+        printf("Sending %s on %s\n", mess, topic);
 
-        if ((rc = MQTTAsync_sendMessage(client, TOPIC, &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
+        if ((rc = MQTTAsync_sendMessage(client, topic, &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
         {
                 printf("Failed to start sendMessage, return code %d\n", rc);
                 exit(EXIT_FAILURE);
