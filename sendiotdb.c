@@ -24,6 +24,7 @@ struct info {
    float temp;
    float pres;
    float humi;
+   float batl;
 };
 char *filename;
 
@@ -43,15 +44,16 @@ void getinfo(struct info *info, char *filename)
 {
     char mess[100] = { 0 };
     int time;
-    float temp, pres, humi;
+    float temp, pres, humi, batl;
     int fd = open(filename, O_RDONLY, 0);
     read(fd, mess, sizeof(mess));
     close(fd);
     printf("getinfo: %s from %s\n", mess, filename);
-    sscanf(mess, "%d %f %f %f", &time, &temp, &pres, &humi); 
+    sscanf(mess, "%d %f %f %f %f", &time, &temp, &pres, &humi, &batl); 
     info->temp = temp;
     info->pres = pres;
     info->humi = humi;
+    info->batl = batl;
 }
 
 volatile MQTTAsync_token deliveredtoken;
@@ -144,7 +146,7 @@ void onConnect(void* context, MQTTAsync_successData* response)
         strcat(device, devicename);
 
         /* build the json mess  */
-        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%lld,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", device, t, info.temp, info.pres, info.humi, 0.0);
+        sprintf(mess, "{\n \"device\":\"%s\",\n \"timestamp\":%lld,\n \"measurements\":[\"temperature\",\"pression\",\"humidy\",\"bat\"],\n \"values\":[%4.2f,%6.2f,%4.2f,%4.2f]\n}", device, t, info.temp, info.pres, info.humi, info.batl);
         pubmsg.payload = mess;
         pubmsg.payloadlen = strlen(mess);
         pubmsg.qos = QOS;
